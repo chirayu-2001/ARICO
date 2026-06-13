@@ -1,0 +1,37 @@
+[
+  {
+    "store_id": "101",
+    "loss_reason": "Store 101 is losing shoe sales",
+    "revenue_at_risk": 3500.0,
+    "product_category": "shoes",
+    "estimated_units_at_risk": 25
+  },
+  {
+    "store_id": "202",
+    "loss_reason": "Store 202 is losing shoe sales",
+    "revenue_at_risk": 12000.0,
+    "product_category": "shoes",
+    "estimated_units_at_risk": 150
+  },
+  {
+    "store_id": "303",
+    "loss_reason": "Store 303 is experiencing a mild decline in shoe sales",
+    "revenue_at_risk": 2800.0,
+    "product_category": "shoes",
+    "estimated_units_at_risk": 18
+  },
+  {
+    "store_id": "404",
+    "loss_reason": "Store 404 is losing shoe sales with growing customer complaints",
+    "revenue_at_risk": 5200.0,
+    "product_category": "shoes",
+    "estimated_units_at_risk": 40
+  },
+  {
+    "store_id": "505",
+    "loss_reason": "Store 505 is experiencing a steady decline in shoe sales",
+    "revenue_at_risk": 7500.0,
+    "product_category": "shoes",
+    "estimated_units_at_risk": 55
+  }
+]
