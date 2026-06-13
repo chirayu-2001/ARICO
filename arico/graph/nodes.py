@@ -17,6 +17,7 @@ from datetime import datetime
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.runnables import RunnableConfig
 
 from arico import config
 from arico import prompts
@@ -40,6 +41,7 @@ from arico.models.reports import (
     SituationAssessment,
 )
 from arico.models.state import ARICOState
+from arico.db import save_report
 from arico.tools.promotion_tool import deploy_promotion
 from arico.tools.sql_tool import run_sql_query
 from arico.tools.store_lookup import get_store_metadata
@@ -820,8 +822,8 @@ def archive_rejected(state: ARICOState) -> dict:
 # Node 9: Generate Final Report
 # ═══════════════════════════════════════════════════════════════════════════
 
-def generate_final_report(state: ARICOState) -> dict:
-    """Generate a final summary report of the entire ARICO workflow."""
+def generate_final_report(state: ARICOState, config: RunnableConfig) -> dict:
+    """Generate a final summary report of the entire ARICO workflow and persist it to the DB."""
     alert = state["alert"]
     metadata = state.get("store_metadata")
     recommendation = state.get("recommendation")
@@ -896,6 +898,30 @@ def generate_final_report(state: ARICOState) -> dict:
     report = "\n".join(report_lines)
     logger.info(f"\n{report}")
 
+    # Determine action taken for the DB record
+    if recommendation and not recommendation.action_needed:
+        action_taken = "no_action"
+    elif deployment and deployment.status == "deployed":
+        action_taken = "deployed"
+    elif deployment and deployment.status == "skipped":
+        action_taken = "rejected"
+    else:
+        action_taken = "unknown"
+
+    # Persist to reports table
+    thread_id = (config.get("configurable") or {}).get("thread_id", alert.store_id)
+    try:
+        save_report(
+            thread_id=thread_id,
+            store_id=alert.store_id,
+            action_taken=action_taken,
+            report_text=report,
+        )
+        logger.info(f"Report saved to DB (thread_id={thread_id}, action={action_taken})")
+    except Exception as e:
+        logger.warning(f"Could not save report to DB: {e}")
+
     return {
-        "execution_log": [f"[{datetime.now().isoformat()}] Final report generated"],
+        "final_report": report,
+        "execution_log": [f"[{datetime.now().isoformat()}] Final report generated and saved (action={action_taken})"],
     }

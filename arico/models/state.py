@@ -75,3 +75,4 @@ class ARICOState(TypedDict):
     # ── Meta ───────────────────────────────────────────────────────────
     iteration_count: int
     execution_log: Annotated[list[str], _merge_logs]
+    final_report: str | None

@@ -89,6 +89,14 @@ CREATE TABLE IF NOT EXISTS threads (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS reports (
+    thread_id TEXT PRIMARY KEY,
+    store_id TEXT NOT NULL,
+    action_taken TEXT NOT NULL,
+    report_text TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
 """
 
 
@@ -153,6 +161,24 @@ def load_all_threads() -> list[dict]:
         return [dict(row) for row in rows]
     except Exception:
         return []
+
+
+def save_report(thread_id: str, store_id: str, action_taken: str, report_text: str) -> None:
+    """Persist the final report text to the reports table."""
+    import datetime
+    now = datetime.datetime.utcnow().isoformat()
+    conn = get_connection()
+    conn.execute(
+        """
+        INSERT INTO reports (thread_id, store_id, action_taken, report_text, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(thread_id) DO UPDATE SET
+            action_taken=excluded.action_taken,
+            report_text=excluded.report_text
+        """,
+        (thread_id, store_id, action_taken, report_text, now),
+    )
+    conn.commit()
 
 
 def is_seeded() -> bool:
